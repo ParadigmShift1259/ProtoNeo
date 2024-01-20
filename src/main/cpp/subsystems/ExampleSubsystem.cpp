@@ -9,7 +9,13 @@ ExampleSubsystem::ExampleSubsystem()
   : m_leadmotor(12, rev::CANSparkLowLevel::MotorType::kBrushless)
   , m_followmotor(13, rev::CANSparkLowLevel::MotorType::kBrushless)
 {
+//#define USE_FOLLOW
+#ifdef USE_FOLLOW
   m_followmotor.Follow(m_leadmotor, true);
+#else
+  //m_followmotor.Follow(m_leadmotor, false);
+  frc::SmartDashboard::PutNumber("diff factor", 0.6);
+#endif
   frc::SmartDashboard::PutNumber("voltage", 0.0);
 }
 
@@ -28,6 +34,8 @@ void ExampleSubsystem::Periodic() {
   // Implementation of subsystem periodic method goes here.
   frc::SmartDashboard::PutNumber("Lead RPM", m_leadEnc.GetVelocity());
   frc::SmartDashboard::PutNumber("Folow RPM", m_followEnc.GetVelocity());
+  frc::SmartDashboard::PutNumber("Lead Ring RPM", m_leadEnc.GetVelocity() / 1.5);  // Gear ratio 1.5
+  frc::SmartDashboard::PutNumber("Folow Ring RPM", m_followEnc.GetVelocity() / 1.5);  // Gear ratio 1.5
   frc::SmartDashboard::PutNumber("Lead Bus Voltage", m_leadmotor.GetBusVoltage());
   frc::SmartDashboard::PutNumber("Follow Bus Voltage", m_followmotor.GetBusVoltage());
   frc::SmartDashboard::PutNumber("Lead Appl Out", m_leadmotor.GetAppliedOutput());
@@ -43,8 +51,15 @@ void ExampleSubsystem::SimulationPeriodic() {
 void ExampleSubsystem::RunMotors() {
   double voltage = frc::SmartDashboard::GetNumber("voltage", 0.0);
   m_leadmotor.SetVoltage(units::voltage::volt_t{voltage});
+#ifndef USE_FOLLOW
+  double diffFactor = frc::SmartDashboard::GetNumber("diff factor", 0.6);
+  m_followmotor.SetVoltage(units::voltage::volt_t{voltage * -1.0 * diffFactor});
+#endif
 }
 
 void ExampleSubsystem::StopMotors() {
   m_leadmotor.SetVoltage(units::voltage::volt_t{0.0});
+#ifndef USE_FOLLOW
+  m_followmotor.SetVoltage(units::voltage::volt_t{0.0});
+#endif
 }
