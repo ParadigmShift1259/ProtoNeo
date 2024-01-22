@@ -8,58 +8,88 @@
 ExampleSubsystem::ExampleSubsystem() 
   : m_leadmotor(12, rev::CANSparkLowLevel::MotorType::kBrushless)
   , m_followmotor(13, rev::CANSparkLowLevel::MotorType::kBrushless)
+  , m_intakeMotor(1)
 {
-//#define USE_FOLLOW
+#define USE_FOLLOW
 #ifdef USE_FOLLOW
   m_followmotor.Follow(m_leadmotor, true);
 #else
-  //m_followmotor.Follow(m_leadmotor, false);
+( //m_followmotor.RestoreFactoryDefaults();
+  m_followmotor.Follow(kFollowerDisabled, 0);
   frc::SmartDashboard::PutNumber("diff factor", 0.6);
 #endif
-  frc::SmartDashboard::PutNumber("voltage", 0.0);
+
+  m_leadmotor.ClearFaults();
+  m_followmotor.ClearFaults();
+
+  m_leadmotor.EnableVoltageCompensation(12.0);
+  m_followmotor.EnableVoltageCompensation(12.0);
+
+  //std::vector< uint8_t > 	 GetSerialNumber ()
+
+  //???m_intakeMotor.SetInveted(true);
+
+  frc::SmartDashboard::PutNumber("voltage", 10.8);
+  frc::SmartDashboard::PutNumber("intake level +/-1", 0.3);
 }
 
-frc2::CommandPtr ExampleSubsystem::ExampleMethodCommand() {
+frc2::CommandPtr ExampleSubsystem::ExampleMethodCommand()
+{
   // Inline construction of command goes here.
   // Subsystem::RunOnce implicitly requires `this` subsystem.
   return RunOnce([/* this */] { /* one-time action goes here */ });
 }
 
-bool ExampleSubsystem::ExampleCondition() {
+bool ExampleSubsystem::ExampleCondition()
+{
   // Query some boolean state, such as a digital sensor.
   return false;
 }
 
-void ExampleSubsystem::Periodic() {
-  // Implementation of subsystem periodic method goes here.
+void ExampleSubsystem::Periodic()
+{
   frc::SmartDashboard::PutNumber("Lead RPM", m_leadEnc.GetVelocity());
   frc::SmartDashboard::PutNumber("Folow RPM", m_followEnc.GetVelocity());
+  
   frc::SmartDashboard::PutNumber("Lead Ring RPM", m_leadEnc.GetVelocity() / 1.5);  // Gear ratio 1.5
   frc::SmartDashboard::PutNumber("Folow Ring RPM", m_followEnc.GetVelocity() / 1.5);  // Gear ratio 1.5
+
   frc::SmartDashboard::PutNumber("Lead Bus Voltage", m_leadmotor.GetBusVoltage());
   frc::SmartDashboard::PutNumber("Follow Bus Voltage", m_followmotor.GetBusVoltage());
+  
   frc::SmartDashboard::PutNumber("Lead Appl Out", m_leadmotor.GetAppliedOutput());
   frc::SmartDashboard::PutNumber("Follow Appl Out", m_followmotor.GetAppliedOutput());
+  
   frc::SmartDashboard::PutNumber("Lead Out Current", m_leadmotor.GetOutputCurrent());
   frc::SmartDashboard::PutNumber("Follow Out Current", m_followmotor.GetOutputCurrent());
 }
 
-void ExampleSubsystem::SimulationPeriodic() {
+void ExampleSubsystem::SimulationPeriodic()
+{
   // Implementation of subsystem simulation periodic method goes here.
 }
 
-void ExampleSubsystem::RunMotors() {
-  double voltage = frc::SmartDashboard::GetNumber("voltage", 0.0);
+void ExampleSubsystem::RunMotors()
+{
+  double voltage = frc::SmartDashboard::GetNumber("voltage", 10.8);
   m_leadmotor.SetVoltage(units::voltage::volt_t{voltage});
+
 #ifndef USE_FOLLOW
   double diffFactor = frc::SmartDashboard::GetNumber("diff factor", 0.6);
   m_followmotor.SetVoltage(units::voltage::volt_t{voltage * -1.0 * diffFactor});
 #endif
+
+  double intakeLevel = frc::SmartDashboard::GetNumber("intake level +/-1", 0.3);
+  m_intakeMotor.Set(intakeLevel);
 }
 
-void ExampleSubsystem::StopMotors() {
+void ExampleSubsystem::StopMotors()
+{
   m_leadmotor.SetVoltage(units::voltage::volt_t{0.0});
+
 #ifndef USE_FOLLOW
   m_followmotor.SetVoltage(units::voltage::volt_t{0.0});
 #endif
+
+  m_intakeMotor.Set(0.0);
 }

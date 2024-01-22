@@ -4,8 +4,11 @@
 
 #pragma once
 
+#include <frc/motorcontrol/Spark.h>
+
 #include <frc2/command/CommandPtr.h>
 #include <frc2/command/SubsystemBase.h>
+
 #include <rev/CanSparkMAX.h>
 
 class ExampleSubsystem : public frc2::SubsystemBase {
@@ -46,4 +49,6 @@ class ExampleSubsystem : public frc2::SubsystemBase {
 
   rev::SparkRelativeEncoder m_leadEnc = m_leadmotor.GetEncoder(rev::SparkRelativeEncoder::Type::kHallSensor, 42);
   rev::SparkRelativeEncoder m_followEnc = m_followmotor.GetEncoder(rev::SparkRelativeEncoder::Type::kHallSensor, 42);
+
+  frc::Spark m_intakeMotor;
 };
