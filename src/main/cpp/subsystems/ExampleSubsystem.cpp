@@ -10,13 +10,15 @@ ExampleSubsystem::ExampleSubsystem()
   , m_followmotor(13, rev::CANSparkLowLevel::MotorType::kBrushless)
   , m_intakeMotor(1)
 {
-#define USE_FOLLOW
+//#define USE_FOLLOW
 #ifdef USE_FOLLOW
-  m_followmotor.Follow(m_leadmotor, true);
+  //m_followmotor.Follow(m_leadmotor, true);
+  m_followmotor.Follow(m_leadmotor, false);
 #else
-( //m_followmotor.RestoreFactoryDefaults();
-  m_followmotor.Follow(kFollowerDisabled, 0);
-  frc::SmartDashboard::PutNumber("diff factor", 0.6);
+    //m_followmotor.RestoreFactoryDefaults();
+  //m_followmotor.Follow(rev::CANSparkBase::kFollowerDisabled);
+  //frc::SmartDashboard::PutNumber("diff factor", 0.6);
+  frc::SmartDashboard::PutNumber("diff factor", 0.95);
 #endif
 
   m_leadmotor.ClearFaults();
@@ -29,8 +31,8 @@ ExampleSubsystem::ExampleSubsystem()
 
   //???m_intakeMotor.SetInveted(true);
 
-  frc::SmartDashboard::PutNumber("voltage", 10.8);
-  frc::SmartDashboard::PutNumber("intake level +/-1", 0.3);
+  frc::SmartDashboard::PutNumber("voltage", -5);
+  frc::SmartDashboard::PutNumber("intake level", -0.76);
 }
 
 frc2::CommandPtr ExampleSubsystem::ExampleMethodCommand()
@@ -71,15 +73,15 @@ void ExampleSubsystem::SimulationPeriodic()
 
 void ExampleSubsystem::RunMotors()
 {
-  double voltage = frc::SmartDashboard::GetNumber("voltage", 10.8);
+  //double voltage = frc::SmartDashboard::GetNumber("voltage", 10.8);
+  double voltage = frc::SmartDashboard::GetNumber("voltage", -5);
   m_leadmotor.SetVoltage(units::voltage::volt_t{voltage});
 
 #ifndef USE_FOLLOW
-  double diffFactor = frc::SmartDashboard::GetNumber("diff factor", 0.6);
+  double diffFactor = frc::SmartDashboard::GetNumber("diff factor", 0.95);
   m_followmotor.SetVoltage(units::voltage::volt_t{voltage * -1.0 * diffFactor});
 #endif
-
-  double intakeLevel = frc::SmartDashboard::GetNumber("intake level +/-1", 0.3);
+  double intakeLevel = frc::SmartDashboard::GetNumber("intake level", -0.76);
   m_intakeMotor.Set(intakeLevel);
 }
 
@@ -90,6 +92,17 @@ void ExampleSubsystem::StopMotors()
 #ifndef USE_FOLLOW
   m_followmotor.SetVoltage(units::voltage::volt_t{0.0});
 #endif
-
   m_intakeMotor.Set(0.0);
 }
+
+void ExampleSubsystem::RunIntake()
+{
+  double intakeLevel = frc::SmartDashboard::GetNumber("intake level", -0.76);
+  m_intakeMotor.Set(intakeLevel);
+}
+
+void ExampleSubsystem::StopIntake()
+{
+  m_intakeMotor.Set(0.0);
+}
+

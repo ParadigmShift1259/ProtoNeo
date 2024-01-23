@@ -40,6 +40,8 @@ class ExampleSubsystem : public frc2::SubsystemBase {
   void SimulationPeriodic() override;
   void RunMotors();
   void StopMotors();
+  void RunIntake();
+  void StopIntake();
 
  private:
   // Components (e.g. motor controllers and sensors) should generally be
