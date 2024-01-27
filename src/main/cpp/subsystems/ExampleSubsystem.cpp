@@ -18,7 +18,7 @@ ExampleSubsystem::ExampleSubsystem()
     //m_followmotor.RestoreFactoryDefaults();
   //m_followmotor.Follow(rev::CANSparkBase::kFollowerDisabled);
   //frc::SmartDashboard::PutNumber("diff factor", 0.6);
-  frc::SmartDashboard::PutNumber("diff factor", 0.95);
+  frc::SmartDashboard::PutNumber("diff factor", -0.95);
 #endif
 
   m_leadmotor.ClearFaults();
@@ -50,6 +50,23 @@ bool ExampleSubsystem::ExampleCondition()
 
 void ExampleSubsystem::Periodic()
 {
+  
+  if (m_timerStarted == false && m_motorStarted == true)
+  {
+    m_timerStarted = true;
+    m_timer.Reset();
+    m_timer.Start();
+  }
+  else if (m_timer.Get() > 4.0_s)
+  {
+    m_intakeMotor.Set(0);
+  }
+  else if (m_timer.Get() >= 3.0_s)
+  {
+    double intakeLevel = frc::SmartDashboard::GetNumber("intake level", -0.76);
+    m_intakeMotor.Set(intakeLevel);
+  }
+
   frc::SmartDashboard::PutNumber("Lead RPM", m_leadEnc.GetVelocity());
   frc::SmartDashboard::PutNumber("Folow RPM", m_followEnc.GetVelocity());
   
@@ -77,12 +94,14 @@ void ExampleSubsystem::RunMotors()
   double voltage = frc::SmartDashboard::GetNumber("voltage", -5);
   m_leadmotor.SetVoltage(units::voltage::volt_t{voltage});
 
+  m_motorStarted = true;
+
 #ifndef USE_FOLLOW
-  double diffFactor = frc::SmartDashboard::GetNumber("diff factor", 0.95);
+  double diffFactor = frc::SmartDashboard::GetNumber("diff factor", -1.0);
   m_followmotor.SetVoltage(units::voltage::volt_t{voltage * -1.0 * diffFactor});
 #endif
-  double intakeLevel = frc::SmartDashboard::GetNumber("intake level", -0.76);
-  m_intakeMotor.Set(intakeLevel);
+
+
 }
 
 void ExampleSubsystem::StopMotors()
@@ -93,6 +112,8 @@ void ExampleSubsystem::StopMotors()
   m_followmotor.SetVoltage(units::voltage::volt_t{0.0});
 #endif
   m_intakeMotor.Set(0.0);
+  m_timerStarted = false;
+  m_motorStarted = false;
 }
 
 void ExampleSubsystem::RunIntake()
