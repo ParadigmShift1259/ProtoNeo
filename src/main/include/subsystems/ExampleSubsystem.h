@@ -4,14 +4,14 @@
 
 #pragma once
 
-#include <frc/motorcontrol/Spark.h>
+//#include <frc/motorcontrol/Spark.h> // For intake
 #include <frc/Timer.h>
 
 #include <frc2/command/CommandPtr.h>
 #include <frc2/command/SubsystemBase.h>
+#include <frc/smartdashboard/SmartDashboard.h>
 
-#include <rev/CanSparkMAX.h>
-
+#include <rev/SparkMax.h>
 
 class ExampleSubsystem : public frc2::SubsystemBase {
  public:
@@ -45,16 +45,26 @@ class ExampleSubsystem : public frc2::SubsystemBase {
   void RunIntake();
   void StopIntake();
 
+  void SpeedAdj(double adjAmt)
+  {
+      double voltage = frc::SmartDashboard::GetNumber("voltage", 5.0);
+      voltage += adjAmt;
+      if (voltage <= 12.0 && voltage >= -12.0)
+      {
+        frc::SmartDashboard::PutNumber("voltage", voltage);
+      }
+  }
+
  private:
   // Components (e.g. motor controllers and sensors) should generally be
   // declared private and exposed only through public methods.
-  rev::CANSparkMax m_leadmotor;
-  rev::CANSparkMax m_followmotor;
+  rev::spark::SparkMax m_leadmotor;
+  rev::spark::SparkMax m_followmotor;
 
-  rev::SparkRelativeEncoder m_leadEnc = m_leadmotor.GetEncoder(rev::SparkRelativeEncoder::Type::kHallSensor, 42);
-  rev::SparkRelativeEncoder m_followEnc = m_followmotor.GetEncoder(rev::SparkRelativeEncoder::Type::kHallSensor, 42);
+  rev::spark::SparkRelativeEncoder m_leadEnc = m_leadmotor.GetEncoder();
+  rev::spark::SparkRelativeEncoder m_followEnc = m_followmotor.GetEncoder();
 
-  frc::Spark m_intakeMotor;
+  //frc::Spark m_intakeMotor;
 
   frc::Timer m_timer;
   bool m_timerStarted = false;

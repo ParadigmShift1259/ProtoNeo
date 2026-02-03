@@ -3,12 +3,13 @@
 // the WPILib BSD license file in the root directory of this project.
 
 #include "subsystems/ExampleSubsystem.h"
-#include <frc/smartdashboard/SmartDashboard.h>
+
+#include <rev/config/SparkMaxConfig.h>
 
 ExampleSubsystem::ExampleSubsystem() 
-  : m_leadmotor(12, rev::CANSparkLowLevel::MotorType::kBrushless)
-  , m_followmotor(13, rev::CANSparkLowLevel::MotorType::kBrushless)
-  , m_intakeMotor(1)
+  : m_leadmotor(12, rev::spark::SparkMax::MotorType::kBrushless)
+  , m_followmotor(13, rev::spark::SparkMax::MotorType::kBrushless)
+  //, m_intakeMotor(1)
 {
 //#define USE_FOLLOW
 #ifdef USE_FOLLOW
@@ -17,21 +18,42 @@ ExampleSubsystem::ExampleSubsystem()
 #else
     //m_followmotor.RestoreFactoryDefaults();
   //m_followmotor.Follow(rev::CANSparkBase::kFollowerDisabled);
-  //frc::SmartDashboard::PutNumber("diff factor", 0.6);
-  frc::SmartDashboard::PutNumber("diff factor", -0.95);
+  frc::SmartDashboard::PutNumber("diff factor", 1.0);
 #endif
 
   m_leadmotor.ClearFaults();
   m_followmotor.ClearFaults();
 
-  m_leadmotor.EnableVoltageCompensation(12.0);
-  m_followmotor.EnableVoltageCompensation(12.0);
+  rev::spark::SparkMaxConfig config;
+  config.encoder.PositionConversionFactor(1)
+                .VelocityConversionFactor(1);
+
+  config.SetIdleMode(rev::spark::SparkBaseConfig::IdleMode::kCoast)
+      .Inverted(false)
+      .VoltageCompensation(12.0)
+      .closedLoop
+        .OutputRange(-1.0, 1.0)
+        .SetFeedbackSensor(rev::spark::FeedbackSensor::kPrimaryEncoder)
+        // Set PID values for position control. We don't need to pass a closed
+        // loop slot, as it will default to slot 0.
+        .P(0.1)
+        .I(0)
+        .D(0)
+        .OutputRange(-1, 1)
+        // Set PID values for velocity control in slot 1
+        .P(0.0001, rev::spark::ClosedLoopSlot::kSlot1)
+        .I(0, rev::spark::ClosedLoopSlot::kSlot1)
+        .D(0, rev::spark::ClosedLoopSlot::kSlot1);        
+  m_leadmotor.Configure(config, rev::ResetMode::kResetSafeParameters,rev::PersistMode::kPersistParameters);
+
+  config.Inverted(true);
+  m_followmotor.Configure(config, rev::ResetMode::kResetSafeParameters,rev::PersistMode::kPersistParameters);
 
   //std::vector< uint8_t > 	 GetSerialNumber ()
 
   //???m_intakeMotor.SetInveted(true);
 
-  frc::SmartDashboard::PutNumber("voltage", -5);
+  frc::SmartDashboard::PutNumber("voltage", 5);
   frc::SmartDashboard::PutNumber("intake level", -0.76);
 }
 
@@ -57,15 +79,15 @@ void ExampleSubsystem::Periodic()
     m_timer.Reset();
     m_timer.Start();
   }
-  else if (m_timer.Get() > 4.0_s)
-  {
-    m_intakeMotor.Set(0);
-  }
-  else if (m_timer.Get() >= 3.0_s)
-  {
-    double intakeLevel = frc::SmartDashboard::GetNumber("intake level", -0.76);
-    m_intakeMotor.Set(intakeLevel);
-  }
+  // else if (m_timer.Get() > 4.0_s)
+  // {
+  //   m_intakeMotor.Set(0);
+  // }
+  // else if (m_timer.Get() >= 3.0_s)
+  // {
+  //   double intakeLevel = frc::SmartDashboard::GetNumber("intake level", -0.76);
+  //   m_intakeMotor.Set(intakeLevel);
+  // }
 
   frc::SmartDashboard::PutNumber("Lead RPM", m_leadEnc.GetVelocity());
   frc::SmartDashboard::PutNumber("Folow RPM", m_followEnc.GetVelocity());
@@ -90,18 +112,15 @@ void ExampleSubsystem::SimulationPeriodic()
 
 void ExampleSubsystem::RunMotors()
 {
-  //double voltage = frc::SmartDashboard::GetNumber("voltage", 10.8);
-  double voltage = frc::SmartDashboard::GetNumber("voltage", -5);
+  double voltage = frc::SmartDashboard::GetNumber("voltage", 5);
   m_leadmotor.SetVoltage(units::voltage::volt_t{voltage});
 
   m_motorStarted = true;
 
 #ifndef USE_FOLLOW
-  double diffFactor = frc::SmartDashboard::GetNumber("diff factor", -1.0);
-  m_followmotor.SetVoltage(units::voltage::volt_t{voltage * -1.0 * diffFactor});
+  double diffFactor = frc::SmartDashboard::GetNumber("diff factor", 1.0);
+  m_followmotor.SetVoltage(units::voltage::volt_t{voltage * diffFactor});
 #endif
-
-
 }
 
 void ExampleSubsystem::StopMotors()
@@ -111,7 +130,7 @@ void ExampleSubsystem::StopMotors()
 #ifndef USE_FOLLOW
   m_followmotor.SetVoltage(units::voltage::volt_t{0.0});
 #endif
-  m_intakeMotor.Set(0.0);
+  //m_intakeMotor.Set(0.0);
   m_timerStarted = false;
   m_motorStarted = false;
 }
@@ -119,11 +138,11 @@ void ExampleSubsystem::StopMotors()
 void ExampleSubsystem::RunIntake()
 {
   double intakeLevel = frc::SmartDashboard::GetNumber("intake level", -0.76);
-  m_intakeMotor.Set(intakeLevel);
+  //m_intakeMotor.Set(intakeLevel);
 }
 
 void ExampleSubsystem::StopIntake()
 {
-  m_intakeMotor.Set(0.0);
+  //m_intakeMotor.Set(0.0);
 }
 

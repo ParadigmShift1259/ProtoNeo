@@ -7,6 +7,7 @@
 #include <frc2/command/CommandPtr.h>
 #include <frc2/command/InstantCommand.h>
 #include <frc2/command/button/CommandXboxController.h>
+#include <frc2/command/InstantCommand.h>
 
 #include "Constants.h"
 #include "subsystems/ExampleSubsystem.h"
@@ -32,6 +33,9 @@ class RobotContainer {
   // The robot's subsystems are defined here...
   ExampleSubsystem m_subsystem;
   // frc2::InstantCommand[this]()
+  
+  frc2::InstantCommand m_instCmdBumpSpeedUp{[this] { m_subsystem.SpeedAdj(0.25); }, {}};
+  frc2::InstantCommand m_instCmdBumpSpeedDn{[this] { m_subsystem.SpeedAdj(-0.25); }, {}};
 
   void ConfigureBindings();
 };
