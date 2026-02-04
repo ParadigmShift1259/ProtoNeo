@@ -4,11 +4,25 @@
 
 #include "subsystems/ExampleSubsystem.h"
 
+#ifdef USE_SPARKMAX
 #include <rev/config/SparkMaxConfig.h>
+#endif
+
+#ifdef USE_SPARKFLEX
+#include <rev/config/SparkFlexConfig.h>
+#endif
 
 ExampleSubsystem::ExampleSubsystem() 
+#ifdef USE_SPARKMAX
   : m_leadmotor(12, rev::spark::SparkMax::MotorType::kBrushless)
+#endif
+
+#ifdef USE_SPARKFLEX
+  : m_leadmotor(12, rev::spark::SparkFlex::MotorType::kBrushless)
+#endif
+#ifdef TWO_MOTORS
   , m_followmotor(13, rev::spark::SparkMax::MotorType::kBrushless)
+#endif
   //, m_intakeMotor(1)
 {
 //#define USE_FOLLOW
@@ -22,9 +36,18 @@ ExampleSubsystem::ExampleSubsystem()
 #endif
 
   m_leadmotor.ClearFaults();
+#ifdef TWO_MOTORS
   m_followmotor.ClearFaults();
+#endif
 
+#ifdef USE_SPARKMAX
   rev::spark::SparkMaxConfig config;
+#endif
+
+#ifdef USE_SPARKFLEX
+  rev::spark::SparkFlexConfig config;
+#endif
+
   config.encoder.PositionConversionFactor(1)
                 .VelocityConversionFactor(1);
 
@@ -46,8 +69,10 @@ ExampleSubsystem::ExampleSubsystem()
         .D(0, rev::spark::ClosedLoopSlot::kSlot1);        
   m_leadmotor.Configure(config, rev::ResetMode::kResetSafeParameters,rev::PersistMode::kPersistParameters);
 
+#ifdef TWO_MOTORS
   config.Inverted(true);
   m_followmotor.Configure(config, rev::ResetMode::kResetSafeParameters,rev::PersistMode::kPersistParameters);
+#endif
 
   //std::vector< uint8_t > 	 GetSerialNumber ()
 
@@ -90,19 +115,18 @@ void ExampleSubsystem::Periodic()
   // }
 
   frc::SmartDashboard::PutNumber("Lead RPM", m_leadEnc.GetVelocity());
-  frc::SmartDashboard::PutNumber("Folow RPM", m_followEnc.GetVelocity());
-  
   frc::SmartDashboard::PutNumber("Lead Ring RPM", m_leadEnc.GetVelocity() / 1.5);  // Gear ratio 1.5
-  frc::SmartDashboard::PutNumber("Folow Ring RPM", m_followEnc.GetVelocity() / 1.5);  // Gear ratio 1.5
-
   frc::SmartDashboard::PutNumber("Lead Bus Voltage", m_leadmotor.GetBusVoltage());
-  frc::SmartDashboard::PutNumber("Follow Bus Voltage", m_followmotor.GetBusVoltage());
-  
   frc::SmartDashboard::PutNumber("Lead Appl Out", m_leadmotor.GetAppliedOutput());
-  frc::SmartDashboard::PutNumber("Follow Appl Out", m_followmotor.GetAppliedOutput());
-  
   frc::SmartDashboard::PutNumber("Lead Out Current", m_leadmotor.GetOutputCurrent());
+
+#ifdef TWO_MOTORS
+  frc::SmartDashboard::PutNumber("Folow RPM", m_followEnc.GetVelocity());
+  frc::SmartDashboard::PutNumber("Folow Ring RPM", m_followEnc.GetVelocity() / 1.5);  // Gear ratio 1.5
+  frc::SmartDashboard::PutNumber("Follow Bus Voltage", m_followmotor.GetBusVoltage());
+  frc::SmartDashboard::PutNumber("Follow Appl Out", m_followmotor.GetAppliedOutput());
   frc::SmartDashboard::PutNumber("Follow Out Current", m_followmotor.GetOutputCurrent());
+#endif
 }
 
 void ExampleSubsystem::SimulationPeriodic()
@@ -117,9 +141,11 @@ void ExampleSubsystem::RunMotors()
 
   m_motorStarted = true;
 
+#ifdef TWO_MOTORS
 #ifndef USE_FOLLOW
   double diffFactor = frc::SmartDashboard::GetNumber("diff factor", 1.0);
   m_followmotor.SetVoltage(units::voltage::volt_t{voltage * diffFactor});
+#endif
 #endif
 }
 
@@ -127,8 +153,10 @@ void ExampleSubsystem::StopMotors()
 {
   m_leadmotor.SetVoltage(units::voltage::volt_t{0.0});
 
+#ifdef TWO_MOTORS
 #ifndef USE_FOLLOW
   m_followmotor.SetVoltage(units::voltage::volt_t{0.0});
+#endif
 #endif
   //m_intakeMotor.Set(0.0);
   m_timerStarted = false;

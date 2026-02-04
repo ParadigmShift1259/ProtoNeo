@@ -11,7 +11,15 @@
 #include <frc2/command/SubsystemBase.h>
 #include <frc/smartdashboard/SmartDashboard.h>
 
+//#define USE_SPARKMAX
+#define USE_SPARKFLEX
+#ifdef USE_SPARKMAX
 #include <rev/SparkMax.h>
+#endif
+
+#ifdef USE_SPARKFLEX
+#include <rev/SparkFlex.h>
+#endif
 
 class ExampleSubsystem : public frc2::SubsystemBase {
  public:
@@ -56,13 +64,20 @@ class ExampleSubsystem : public frc2::SubsystemBase {
   }
 
  private:
-  // Components (e.g. motor controllers and sensors) should generally be
-  // declared private and exposed only through public methods.
+#ifdef USE_SPARKMAX
   rev::spark::SparkMax m_leadmotor;
-  rev::spark::SparkMax m_followmotor;
-
   rev::spark::SparkRelativeEncoder m_leadEnc = m_leadmotor.GetEncoder();
+#endif
+
+#ifdef USE_SPARKFLEX
+  rev::spark::SparkFlex m_leadmotor;
+  rev::spark::SparkRelativeEncoder m_leadEnc = m_leadmotor.GetEncoder();
+#endif
+
+#ifdef TWO_MOTORS
+  rev::spark::SparkMax m_followmotor;
   rev::spark::SparkRelativeEncoder m_followEnc = m_followmotor.GetEncoder();
+#endif
 
   //frc::Spark m_intakeMotor;
 
