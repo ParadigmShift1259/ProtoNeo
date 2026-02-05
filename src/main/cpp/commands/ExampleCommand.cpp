@@ -12,12 +12,11 @@ ExampleCommand::ExampleCommand(ExampleSubsystem* subsystem)
 
 void ExampleCommand::Initialize()
 {
-  m_subsystem->RunMotors();
 }
 
 void ExampleCommand::Execute()
 {
-  
+  m_subsystem->RunMotors();
 }
 
 bool ExampleCommand::IsFinished()

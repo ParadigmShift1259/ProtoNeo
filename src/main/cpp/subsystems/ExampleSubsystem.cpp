@@ -80,6 +80,7 @@ ExampleSubsystem::ExampleSubsystem()
 
   frc::SmartDashboard::PutNumber("voltage", 5);
   frc::SmartDashboard::PutNumber("intake level", -0.76);
+  frc::SmartDashboard::PutNumber("applied voltage", m_appliedVoltage);
 }
 
 frc2::CommandPtr ExampleSubsystem::ExampleMethodCommand()
@@ -137,20 +138,40 @@ void ExampleSubsystem::SimulationPeriodic()
 void ExampleSubsystem::RunMotors()
 {
   double voltage = frc::SmartDashboard::GetNumber("voltage", 5);
-  m_leadmotor.SetVoltage(units::voltage::volt_t{voltage});
+
+  if (voltage > 0.0)
+  {
+    if (m_appliedVoltage < voltage)
+    {
+
+      m_appliedVoltage += 0.01;
+    }
+  }
+  else
+  {
+    if (m_appliedVoltage > voltage)
+    {
+
+      m_appliedVoltage -= 0.05;
+    }
+  }
+  m_leadmotor.SetVoltage(units::voltage::volt_t{m_appliedVoltage});
+  frc::SmartDashboard::PutNumber("applied voltage", m_appliedVoltage);
 
   m_motorStarted = true;
 
 #ifdef TWO_MOTORS
 #ifndef USE_FOLLOW
   double diffFactor = frc::SmartDashboard::GetNumber("diff factor", 1.0);
-  m_followmotor.SetVoltage(units::voltage::volt_t{voltage * diffFactor});
+  m_followmotor.SetVoltage(units::voltage::volt_t{m_appliedVoltage * diffFactor});
 #endif
 #endif
 }
 
 void ExampleSubsystem::StopMotors()
 {
+  m_appliedVoltage = 0.0;
+  frc::SmartDashboard::PutNumber("applied voltage", m_appliedVoltage);
   m_leadmotor.SetVoltage(units::voltage::volt_t{0.0});
 
 #ifdef TWO_MOTORS

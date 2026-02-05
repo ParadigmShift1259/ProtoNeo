@@ -84,4 +84,5 @@ class ExampleSubsystem : public frc2::SubsystemBase {
   frc::Timer m_timer;
   bool m_timerStarted = false;
   bool m_motorStarted = false;
+  double m_appliedVoltage = 0.0;
 };
