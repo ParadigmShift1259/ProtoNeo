@@ -1,0 +1,25 @@
+1600px in 5 sec
+320px/s
+3.125ms/px
+
+10 balls/sec goal means 100ms to full recovery 
+
+4 volts ~2100 RPM
+104 px	325ms
+92		287ms
+120		375ms
+114		356ms
+
+4 volts ~2100 RPM
+152	475
+194	606
+159	496
+
+5 volts	~2700 RPM
+93	290
+128	400
+80	250
+
+5 volts	~2700 RPM
+52	162
+58	181

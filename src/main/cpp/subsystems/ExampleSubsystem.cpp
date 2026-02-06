@@ -138,13 +138,14 @@ void ExampleSubsystem::SimulationPeriodic()
 void ExampleSubsystem::RunMotors()
 {
   double voltage = frc::SmartDashboard::GetNumber("voltage", 5);
+  constexpr double increment = 0.05;
 
   if (voltage > 0.0)
   {
     if (m_appliedVoltage < voltage)
     {
 
-      m_appliedVoltage += 0.01;
+      m_appliedVoltage += increment;
     }
   }
   else
@@ -152,7 +153,7 @@ void ExampleSubsystem::RunMotors()
     if (m_appliedVoltage > voltage)
     {
 
-      m_appliedVoltage -= 0.05;
+      m_appliedVoltage -= increment;
     }
   }
   m_leadmotor.SetVoltage(units::voltage::volt_t{m_appliedVoltage});
